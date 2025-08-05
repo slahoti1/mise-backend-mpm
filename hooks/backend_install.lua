@@ -23,7 +23,16 @@ function PLUGIN:BackendInstall(ctx)
 
     -- Compute parent directory
     local parent_path = install_path:match("^(.*)[/\\][^/\\]+$")
-    local mpm_exe = os:find("windows") and (parent_path .. "\\mpm.exe") or (parent_path .. "/mpm")
+    if not parent_path then
+        error("Could not determine parent_path from install_path: " .. tostring(install_path))
+    end
+
+    local mpm_exe
+    if os_type == "windows" then
+        mpm_exe = parent_path .. "\\mpm.exe"
+    else
+        mpm_exe = parent_path .. "/mpm"
+    end
 
     local mpm_url = ""
     -- Check if mpm already exists
@@ -71,7 +80,7 @@ function PLUGIN:BackendInstall(ctx)
         print("mpm.exe was not downloaded correctly to: " .. mpm_exe)
     end
     -- Prepare products
-    local products = "MATLAB"
+    local products = tool
     products = products:gsub(",", " ")
 
     -- Build the install command
