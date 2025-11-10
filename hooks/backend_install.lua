@@ -1,6 +1,7 @@
 function PLUGIN:BackendInstall(ctx)
     local tool = ctx.tool
-    local version = ctx.version
+    local version = os.getenv("INSTALL_VERSION")
+    local MATLAB_HASH = ctx.version
     local install_path = ctx.install_path
 
     local cmd = require("cmd")
@@ -22,10 +23,11 @@ function PLUGIN:BackendInstall(ctx)
    
 
     -- Compute parent directory
-    local parent_path = install_path:match("^(.*)[/\\][^/\\]+$")
-    if not parent_path then
-        error("Could not determine parent_path from install_path: " .. tostring(install_path))
+    local parent_path = install_path:match("^(.*)[/\\][^/\\]+$")   -- one up
+    if parent_path then
+        parent_path = parent_path:match("^(.*)[/\\][^/\\]+$")      -- two up
     end
+    local new_install_path = parent_path .. sep .. MATLAB_HASH
 
     local mpm_exe
     if os_type == "windows" then
@@ -84,7 +86,7 @@ function PLUGIN:BackendInstall(ctx)
     products = products:gsub(",", " ")
 
     -- Build the install command
-    local matlab_cmd = string.format('%s install --release=%s --destination=%s --products=%s', mpm_exe, version, install_path, products)
+    local matlab_cmd = string.format('%s install --release=%s --destination=%s --products=%s', mpm_exe, version, new_install_path, products)
 
 
     print("[DEBUG] Running: " .. matlab_cmd)
